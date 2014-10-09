@@ -33,14 +33,27 @@ GAME_BOARD = None
 DEBUG = False
 ######################
 
-GAME_WIDTH = 5
+GAME_WIDTH = 8
 GAME_HEIGHT = 5
 
 #### Put class definitions here ####
 
+class Key(GameElement):
+    IMAGE = "Key"
+    SOLID = False
+    can_open_door = True
+
+    def interact(self, character):
+        character.inventory.append(self)
+        GAME_BOARD.draw_msg("Nice find! This can open doors! You have %d items!" % (len(character.inventory)))
+
+
+
 class Gem(GameElement):
     IMAGE = "BlueGem"
     SOLID = False
+    can_open_door = True
+
 
     def interact(self, character):
         character.inventory.append(self)
@@ -51,7 +64,7 @@ class Reset_stone(GameElement):
     SOLID = True
 
     def interact(self, character):
-        #player moves to starting point
+        #hackbrighter moves to starting point
         self.board.del_el(self.x, self.y)
         character.board.del_el(character.x, character.y)
         character.board.set_el(2, 2, character) #might have to make this dynamic later
@@ -59,6 +72,28 @@ class Reset_stone(GameElement):
 class Rock(GameElement):
     IMAGE = "Rock"
     SOLID = True
+
+class Door(GameElement):
+    #global gem
+#    print character.inventory
+    IMAGE = "DoorClosed"
+    SOLID = True
+
+    def can_be_opened(self, inventory):
+        for i in inventory:
+            if getattr(i, 'can_open_door', False):
+                return True
+        return False
+
+    def interact(self, character):
+        
+            
+
+        if self.IMAGE == "DoorClosed" and self.can_be_opened(character.inventory):
+            self.change_image("DoorOpen")
+            self.SOLID = False
+
+
 
 class Character(GameElement):
     IMAGE = "Horns"
@@ -115,16 +150,19 @@ class Character(GameElement):
 
 ####   End class definitions    ####
 
+# gem_you_want = None
+
 def initialize():
     """Put game initialization code here"""
-    
+    # global gem_you_want
+
     # registering and setting our rocks in the initialize function
     
     rock_positions = [
-        (2, 1),
-        (1, 2),
-        (3, 2),
-        (2, 3) 
+        (4, 0),
+        (4, 1),
+        (4, 2),
+        (4, 4), 
     ]
 
     rocks = []
@@ -135,17 +173,25 @@ def initialize():
         GAME_BOARD.set_el(pos[0], pos[1], rock)
         rocks.append(rock)
 
-    rocks[-1].SOLID = False
+   # rocks[-1].SOLID = False
 
     for rock in rocks:
         print rock
 
-    # registering and setting our player in the initialize function
+    doorA = Door()
+    GAME_BOARD.register(doorA)
+    GAME_BOARD.set_el(4,3, doorA)
 
-    player = Character()
-    GAME_BOARD.register(player)
-    GAME_BOARD.set_el(2, 2, player)
-    print player
+    # registering and setting our hackbrighter in the initialize function
+
+    key1 = Key()
+    GAME_BOARD.register(key1)
+    GAME_BOARD.set_el(1,1, key1)    
+
+    hackbrighter = Character()
+    GAME_BOARD.register(hackbrighter)
+    GAME_BOARD.set_el(2, 2, hackbrighter)
+    print hackbrighter
 
     GAME_BOARD.draw_msg("This game is wicked awesome.")
 
@@ -157,7 +203,7 @@ def initialize():
     # registering and setting the reset gem in the initialize function
     reset_stone = Reset_stone()
     GAME_BOARD.register(reset_stone)
-    GAME_BOARD.set_el(4, 4, reset_stone)
+    GAME_BOARD.set_el(0, 4, reset_stone)
 
 
 
