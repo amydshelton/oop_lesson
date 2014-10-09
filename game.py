@@ -42,6 +42,7 @@ class Key(GameElement):
     IMAGE = "Key"
     SOLID = False
     can_open_door = True
+    DO = False
 
     def interact(self, character):
         character.inventory.append(self)
@@ -52,16 +53,21 @@ class Key(GameElement):
 class Gem(GameElement):
     IMAGE = "BlueGem"
     SOLID = False
-    can_open_door = True
+    DO = False
 
 
     def interact(self, character):
-        character.inventory.append(self)
-        GAME_BOARD.draw_msg("You just acquired a gem! You have %d items!" % (len(character.inventory)))
+        new_friend = Character()
+        new_friend.change_image("Princess")
+        GAME_BOARD.draw_msg("This gem made you a new friend! Go visit her! Your inventory has %s items" % (len(character.inventory)))
+        GAME_BOARD.register(new_friend)
+        GAME_BOARD.set_el(6, 1, new_friend)
+
 
 class Reset_stone(GameElement):
     IMAGE = "GreenGem"
     SOLID = True
+    DO = False
 
     def interact(self, character):
         #hackbrighter moves to starting point
@@ -72,12 +78,23 @@ class Reset_stone(GameElement):
 class Rock(GameElement):
     IMAGE = "Rock"
     SOLID = True
+    DO = False
 
 class Door(GameElement):
     #global gem
 #    print character.inventory
     IMAGE = "DoorClosed"
     SOLID = True
+    DOOR_VISIBLE = True
+    DO = False
+
+
+    def __init__(self,xcoordinate=0,ycoordinate=0):
+        GameElement.__init__(self)
+        GAME_BOARD.set_el(xcoordinate,ycoordinate,self)
+        xcoordinate = xcoordinate
+        ycoordinate = ycoordinate
+
 
     def can_be_opened(self, inventory):
         for i in inventory:
@@ -87,20 +104,28 @@ class Door(GameElement):
 
     def interact(self, character):
         
-            
-
         if self.IMAGE == "DoorClosed" and self.can_be_opened(character.inventory):
             self.change_image("DoorOpen")
             self.SOLID = False
+            self.DOOR_VISIBLE = False
 
 
 
 class Character(GameElement):
     IMAGE = "Horns"
-
+    SOLID = True
+    SPEAK = True
+    DO = True
     def __init__(self):
         GameElement.__init__(self)
         self.inventory = []
+
+    def do_thing(self):
+         GAME_BOARD.draw_msg("Hi!")
+ 
+
+class Main_Character(Character):
+    DO = False
 
     def next_pos(self, direction):
         if direction == "up":
@@ -126,6 +151,13 @@ class Character(GameElement):
 
         self.board.draw_msg("%s moves %s" % (self.IMAGE, direction))
 
+        #if character is far away and a door exists somewhere and the door state is invisible, then make it visible at door.x, self.IMAGE = open door
+        doorA = self.board.get_el(4,3)
+    #    print doorA, "Hello", dir(doorA)
+        if (self.x, self.y) != (doorA.x,doorA.y) and doorA.DOOR_VISIBLE == False:
+            doorA.DOOR_VISIBLE = True
+            doorA.IMAGE = "DoorOpen"
+
         if direction:
             next_location = self.next_pos(direction)
 
@@ -143,10 +175,14 @@ class Character(GameElement):
                         existing_el.interact(self)
 
                     if existing_el and existing_el.SOLID:
-                        self.board.draw_msg("There's something in my way!")
+                        if existing_el.DO:
+                            existing_el.do_thing()
+                        else:
+                            self.board.draw_msg("There's something in my way!")                         
                     elif existing_el is None or not existing_el.SOLID:
-                        self.board.del_el(self.x, self.y)
-                        self.board.set_el(next_x, next_y, self)
+                            self.board.del_el(self.x, self.y)
+                            self.board.set_el(next_x, next_y, self)
+                        
 
 ####   End class definitions    ####
 
@@ -178,9 +214,8 @@ def initialize():
     for rock in rocks:
         print rock
 
-    doorA = Door()
+    doorA = Door(4,3) #pass in coordinates
     GAME_BOARD.register(doorA)
-    GAME_BOARD.set_el(4,3, doorA)
 
     # registering and setting our hackbrighter in the initialize function
 
@@ -188,7 +223,7 @@ def initialize():
     GAME_BOARD.register(key1)
     GAME_BOARD.set_el(1,1, key1)    
 
-    hackbrighter = Character()
+    hackbrighter = Main_Character()
     GAME_BOARD.register(hackbrighter)
     GAME_BOARD.set_el(2, 2, hackbrighter)
     print hackbrighter
