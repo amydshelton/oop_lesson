@@ -74,7 +74,7 @@ class Gem(GameElement):
     def interact(self, character):
         new_friend = Character()
         new_friend.change_image("Princess")
-        GAME_BOARD.draw_msg("This gem made you a new friend! Go visit her! Your inventory has %s items" % (len(character.inventory)))
+        GAME_BOARD.draw_msg("This gem made you a new friend! Go visit her!")
         GAME_BOARD.register(new_friend)
         GAME_BOARD.set_el(6, 1, new_friend)
 
@@ -128,13 +128,11 @@ class Heart(GameElement):
     SOLID = False
     DO = False
 
-    def interact(self):
-        GAME_BOARD.draw_msg("Now you have a heart!") # add to inventory
-     #   heart = Heart()
-      #  GAME_BOARD.register(heart)
-      #  heartx =  character.x + 1
-       # hearty = character.y
-      #  GAME_BOARD.set_el(heartx, hearty, heart)
+    def interact(self,character):
+        character.inventory.append(self)
+        GAME_BOARD.draw_msg("Now you have a heart in your inventory! You have %d items!" % (len(character.inventory)))
+        
+
 
 class Character(GameElement):
     IMAGE = "Horns"
@@ -149,7 +147,6 @@ class Character(GameElement):
 
     def do_thing(self):
         GAME_BOARD.draw_msg("You had me at hello!")
-    #     heart = Heart("hackbrighter")
         heart = Heart()
         GAME_BOARD.register(heart)
         GAME_BOARD.set_el(7,1, heart)
