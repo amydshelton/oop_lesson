@@ -123,7 +123,18 @@ class Door(GameElement):
             self.SOLID = False
             
         
+class Heart(GameElement):
+    IMAGE = "Heart"
+    SOLID = False
+    DO = False
 
+    def interact(self):
+        GAME_BOARD.draw_msg("Now you have a heart!") # add to inventory
+     #   heart = Heart()
+      #  GAME_BOARD.register(heart)
+      #  heartx =  character.x + 1
+       # hearty = character.y
+      #  GAME_BOARD.set_el(heartx, hearty, heart)
 
 class Character(GameElement):
     IMAGE = "Horns"
@@ -137,7 +148,12 @@ class Character(GameElement):
         self.hover = None
 
     def do_thing(self):
-         GAME_BOARD.draw_msg("You had me at hello!")
+        GAME_BOARD.draw_msg("You had me at hello!")
+    #     heart = Heart("hackbrighter")
+        heart = Heart()
+        GAME_BOARD.register(heart)
+        GAME_BOARD.set_el(7,1, heart)
+
  
 
 class Main_Character(Character):
