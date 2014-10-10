@@ -2,7 +2,7 @@ import core
 import pyglet
 from pyglet.window import key
 from core import GameElement
-import sys
+import sys, random
 
 ### Our list of images ##
 
@@ -37,6 +37,21 @@ GAME_WIDTH = 8
 GAME_HEIGHT = 5
 
 #### Put class definitions here ####
+
+class BadGuy(GameElement):
+    IMAGE = "Cat"
+    direction = 1
+
+    def update(self, dt):
+        if random.random() < .2:
+            next_y = self.y + self.direction
+
+            if next_y < 0 or next_y >= self.board.height:
+                self.direction *= -1
+                next_y = self.y
+
+            self.board.del_el(self.x, self.y)
+            self.board.set_el(self.x, next_y, self)
 
 class Key(GameElement):
     IMAGE = "Key"
@@ -81,11 +96,10 @@ class Rock(GameElement):
     DO = False
 
 class Door(GameElement):
-    #global gem
-#    print character.inventory
+
     IMAGE = "DoorClosed"
     SOLID = True
-    DOOR_VISIBLE = True
+
     DO = False
 
 
@@ -103,12 +117,12 @@ class Door(GameElement):
         return False
 
     def interact(self, character):
-        
+        character.hover = self
         if self.IMAGE == "DoorClosed" and self.can_be_opened(character.inventory):
             self.change_image("DoorOpen")
             self.SOLID = False
-            self.DOOR_VISIBLE = False
-
+            
+        
 
 
 class Character(GameElement):
@@ -116,16 +130,19 @@ class Character(GameElement):
     SOLID = True
     SPEAK = True
     DO = True
+
     def __init__(self):
         GameElement.__init__(self)
         self.inventory = []
+        self.hover = None
 
     def do_thing(self):
-         GAME_BOARD.draw_msg("Hi!")
+         GAME_BOARD.draw_msg("You had me at hello!")
  
 
 class Main_Character(Character):
     DO = False
+
 
     def next_pos(self, direction):
         if direction == "up":
@@ -151,12 +168,7 @@ class Main_Character(Character):
 
         self.board.draw_msg("%s moves %s" % (self.IMAGE, direction))
 
-        #if character is far away and a door exists somewhere and the door state is invisible, then make it visible at door.x, self.IMAGE = open door
-        doorA = self.board.get_el(4,3)
-    #    print doorA, "Hello", dir(doorA)
-        if (self.x, self.y) != (doorA.x,doorA.y) and doorA.DOOR_VISIBLE == False:
-            doorA.DOOR_VISIBLE = True
-            doorA.IMAGE = "DoorOpen"
+        hover = self.hover
 
         if direction:
             next_location = self.next_pos(direction)
@@ -181,8 +193,11 @@ class Main_Character(Character):
                             self.board.draw_msg("There's something in my way!")                         
                     elif existing_el is None or not existing_el.SOLID:
                             self.board.del_el(self.x, self.y)
+                            if hover:
+                                hover.board.set_el(self.x, self.y, hover)
+                                self.hover = None
+
                             self.board.set_el(next_x, next_y, self)
-                        
 
 ####   End class definitions    ####
 
@@ -211,8 +226,11 @@ def initialize():
 
    # rocks[-1].SOLID = False
 
-    for rock in rocks:
-        print rock
+    bad_dude = BadGuy()
+    GAME_BOARD.register(bad_dude)
+    GAME_BOARD.set_el(5,4, bad_dude)
+
+    
 
     doorA = Door(4,3) #pass in coordinates
     GAME_BOARD.register(doorA)
@@ -226,7 +244,6 @@ def initialize():
     hackbrighter = Main_Character()
     GAME_BOARD.register(hackbrighter)
     GAME_BOARD.set_el(2, 2, hackbrighter)
-    print hackbrighter
 
     GAME_BOARD.draw_msg("This game is wicked awesome.")
 
